@@ -3,85 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>NATHAN COMPANY</title>
+  <title>Nathan Company App</title>
   <link rel="manifest" href="manifest.json">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body, html { height: 100%; overflow: hidden; background-color: #f8fafc; font-family: 'Segoe UI', sans-serif; }
+    body { 
+      font-family: 'Segoe UI', Arial, sans-serif; 
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7); 
+      height: 100vh; display: flex; flex-direction: column; 
+      justify-content: center; align-items: center; padding: 20px; text-align: center;
+    }
     
-    /* The Iframe holding your Google Apps Script */
-    iframe { width: 100vw; height: 100vh; border: none; display: block; }
+    .container {
+      background: white; padding: 40px 30px; border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(22, 101, 52, 0.1);
+      max-width: 400px; width: 100%; border: 1px solid #bbf7d0;
+    }
 
-    /* The Install Popup Modal */
-    .modal {
-      display: none; 
-      position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.6); 
-      justify-content: center; align-items: center;
-    }
-    .modal-content {
-      background-color: #fff; padding: 30px; border-radius: 12px;
-      text-align: center; width: 90%; max-width: 400px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-    .modal-header h2 { color: #1a5c37; margin-bottom: 15px; }
-    .modal-body p { color: #475569; margin-bottom: 20px; font-size: 15px; line-height: 1.5; }
-    
-    .button {
-      background-color: #1a5c37; color: white; padding: 14px; width: 100%;
+    h1 { color: #166534; font-size: 24px; margin-bottom: 10px; }
+    p { color: #475569; font-size: 15px; margin-bottom: 30px; line-height: 1.5; }
+
+    .btn {
+      background-color: #166534; color: white; padding: 15px; width: 100%;
       border: none; border-radius: 8px; font-size: 16px; font-weight: bold;
-      cursor: pointer; transition: 0.2s;
+      cursor: pointer; transition: 0.2s; display: inline-block; text-decoration: none;
+      margin-bottom: 15px;
     }
-    .button:hover { background-color: #15462a; }
+    .btn:hover { background-color: #14532d; transform: translateY(-2px); }
     
-    .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; margin-top: -15px; margin-right: -10px; }
-    .close:hover, .close:focus { color: black; cursor: pointer; }
+    .btn-outline {
+      background-color: white; color: #166534; border: 2px solid #166534;
+    }
+    .btn-outline:hover { background-color: #f0fdf4; }
+
+    #loading { display: none; color: #166534; font-weight: bold; font-size: 18px; }
   </style>
 </head>
 <body>
 
-  <iframe src="https://script.google.com/macros/s/AKfycbyXuiO3p2Roo5dzFbHqVdJo9rEDAgLGCxXZoENRPJvL4VlTqd3ke3zPddnV0a2KTenGMQ/exec"></iframe>
+  <div class="container" id="ui-container">
+    <h1>Nathan Company</h1>
+    <p>Inventory & Sales Management System</p>
+    
+    <button id="installBtn" class="btn" style="display: none;">📲 Install App to Phone</button>
+    
+    <a href="https://script.google.com/macros/s/AKfycbyXuiO3p2Roo5dzFbHqVdJo9rEDAgLGCxXZoENRPJvL4VlTqd3ke3zPddnV0a2KTenGMQ/exec" class="btn btn-outline">Open in Browser Instead</a>
+  </div>
 
-  <div id="pwaModal" class="modal">
-    <div class="modal-content">
-      <span class="close" id="closePwaModal">&times;</span>
-      <div class="modal-header">
-        <h2>Install App</h2>
-      </div>
-      <div class="modal-body">
-        <p>Would you like to install the Nathan Company App to your device for faster, full-screen access?</p>
-        <button id="installBtn" class="button">Install App</button>
-      </div>
-    </div>
+  <div id="loading">
+    🔄 Loading System...
   </div>
 
   <script>
+    // THE GOOGLE APPS SCRIPT LINK
+    const appUrl = "https://script.google.com/macros/s/AKfycbyXuiO3p2Roo5dzFbHqVdJo9rEDAgLGCxXZoENRPJvL4VlTqd3ke3zPddnV0a2KTenGMQ/exec";
+
+    // 1. Check if the app is ALREADY installed and running from the Home Screen
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    
+    if (isStandalone) {
+      // If installed, hide the buttons and instantly redirect to the app!
+      document.getElementById('ui-container').style.display = 'none';
+      document.getElementById('loading').style.display = 'block';
+      window.location.replace(appUrl);
+    }
+
+    // 2. PWA Installation Logic (for when they open it in a normal browser)
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
     }
 
     let deferredPrompt;
-    const pwaModal = document.getElementById('pwaModal');
-    const closePwaModal = document.getElementById('closePwaModal');
     const installBtn = document.getElementById('installBtn');
 
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault(); 
       deferredPrompt = e;
-      pwaModal.style.display = "flex"; 
+      installBtn.style.display = 'block'; // Show install button
     });
-
-    closePwaModal.onclick = function() {
-      pwaModal.style.display = "none";
-    };
 
     installBtn.addEventListener('click', async () => {
       if (deferredPrompt) {
         deferredPrompt.prompt(); 
         const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response: ${outcome}`);
         deferredPrompt = null; 
-        pwaModal.style.display = "none";
+        installBtn.style.display = 'none';
       }
     });
   </script>
