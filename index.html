@@ -43,52 +43,60 @@
 
   <div class="container" id="ui-container">
     <h1>Nathan Company</h1>
-    <p>Inventory & Sales Management System</p>
+    <p>Inventory & Sales System<br><small>Bypassing Account Conflicts...</small></p>
     
-    <button id="installBtn" class="btn" style="display: none;">📲 Install App to Phone</button>
+    <button id="installBtn" class="btn" style="display: none;">📲 Download App</button>
     
-    <a href="https://script.google.com/macros/s/AKfycbyXuiO3p2Roo5dzFbHqVdJo9rEDAgLGCxXZoENRPJvL4VlTqd3ke3zPddnV0a2KTenGMQ/exec" class="btn btn-outline">Open in Browser Instead</a>
+    <a href="https://script.google.com/macros/s/AKfycbyXuiO3p2Roo5dzFbHqVdJo9rEDAgLGCxXZoENRPJvL4VlTqd3ke3zPddnV0a2KTenGMQ/exec?authuser=0" class="btn btn-outline" id="manual-link">Open Dashboard</a>
+    
+    <p style="font-size: 12px; margin-top: 10px; color: #94a3b8;">If you see "Unable to open file", please use an Incognito tab or Install the app.</p>
   </div>
 
   <div id="loading">
-    🔄 Loading System...
+    🔄 Loading Secure Session...
   </div>
 
   <script>
-    // THE GOOGLE APPS SCRIPT LINK
-    const appUrl = "https://script.google.com/macros/s/AKfycbyXuiO3p2Roo5dzFbHqVdJo9rEDAgLGCxXZoENRPJvL4VlTqd3ke3zPddnV0a2KTenGMQ/exec";
+    // 1. THE REFRESHED LINK WITH AUTHUSER FORCE
+    const appUrl = "https://script.google.com/macros/s/AKfycbyXuiO3p2Roo5dzFbHqVdJo9rEDAgLGCxXZoENRPJvL4VlTqd3ke3zPddnV0a2KTenGMQ/exec?authuser=0";
 
-    // 1. Check if the app is ALREADY installed and running from the Home Screen
+    // 2. Detection Logic
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     
     if (isStandalone) {
-      // If installed, hide the buttons and instantly redirect to the app!
       document.getElementById('ui-container').style.display = 'none';
       document.getElementById('loading').style.display = 'block';
+      // Force immediate redirect for the installed app
       window.location.replace(appUrl);
     }
 
-    // 2. PWA Installation Logic (for when they open it in a normal browser)
+    // 3. PWA Installation
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js');
     }
 
     let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
-
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault(); 
       deferredPrompt = e;
-      installBtn.style.display = 'block'; // Show install button
+      document.getElementById('installBtn').style.display = 'block';
     });
 
-    installBtn.addEventListener('click', async () => {
+    document.getElementById('installBtn').addEventListener('click', async () => {
       if (deferredPrompt) {
-        deferredPrompt.prompt(); 
+        deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        deferredPrompt = null; 
-        installBtn.style.display = 'none';
+        deferredPrompt = null;
+        document.getElementById('installBtn').style.display = 'none';
       }
+    });
+
+    // 4. Force links to open in a way that bypasses iframe restrictions
+    document.getElementById('manual-link').addEventListener('click', function(e) {
+      // Small delay helps some browsers resolve the account conflict
+      setTimeout(() => {
+        window.location.href = appUrl;
+      }, 100);
     });
   </script>
 </body>
